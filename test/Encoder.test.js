@@ -6,8 +6,9 @@ var test = require('tape');
 var data = require('./data.js');
 var bencode = require('../index.js');
 
-bencode.encode = function(value) {
-  return bencode.Encoder.encode(value, { floatMode: 'lossy', supressWarnings: true });
+//redefine encode with correct options to mimic node-bencode
+bencode.encode = function(value, options) {
+  return bencode.Encoder.encode(value, options || { floatMode: 'lossy', supressWarnings: true });
 };
 
 test('bencode#encode()', function(t) {
