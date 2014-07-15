@@ -2,12 +2,11 @@
 
 'use strict';
 
-var Decoder = require('../lib/Decoder.js');
-var Encoder = require('../lib/Encoder.js');
+var bxxcode = require('../index.js');
 
 function encodeDecodeLog(value, options) {
-  var encoded = Encoder.encode(value, options);
-  var decoded = Decoder.decode(encoded, options);
+  var encoded = bxxcode.encode(value, options);
+  var decoded = bxxcode.decode(encoded, options);
 
   if (typeof(decoded) === 'string') {
     console.log(decoded.toString(),'=>', encoded.toString());

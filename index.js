@@ -3,7 +3,7 @@
 'use strict';
 
 var Encoder = require('./lib/Encoder.js');
-var Decoder = require('./lib/Decoder,js');
+var Decoder = require('./lib/Decoder.js');
 
 module.exports = {
   encode : Encoder.encode,
