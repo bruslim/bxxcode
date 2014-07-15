@@ -23,5 +23,8 @@
   "bugs": {
     "url": "https://github.com/bruslim/bxxcode/issues"
   },
-  "homepage": "https://github.com/bruslim/bxxcode"
+  "homepage": "https://github.com/bruslim/bxxcode",
+  "devDependencies": {
+    "tape": "^2.13.3"
+  }
 }
