@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>Decoder.js</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>Decoder.js</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-comment">/*jshint node: true*/</span>
+
+<span class="hljs-comment">/**
+ * A module which can Decode bencoded files
+ * @module
+ * @author bruslim (https://github.com/bruslim)
+ */</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>strict mode</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-pi">'use strict'</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>import the dictionary module</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">var</span> Dictionary = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./Dictionary.js'</span>);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <h2 id="special-characters">Special Characters</h2>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <p> End Character <code>e</code></p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">var</span> END_CHAR = <span class="hljs-number">101</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              <p> Integer Character <code>i</code></p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">var</span> INT_CHAR = <span class="hljs-number">105</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-7">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-7">&#182;</a>
+              </div>
+              <p> List Character <code>l</code></p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">var</span> LIST_CHAR = <span class="hljs-number">108</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-8">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-8">&#182;</a>
+              </div>
+              <p> Dictionary Character <code>d</code></p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">var</span> DICT_CHAR = <span class="hljs-number">100</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-9">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-9">&#182;</a>
+              </div>
+              <p> Separator Character <code>:</code></p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">var</span> SEP_CHAR = <span class="hljs-number">58</span>; 
+
+<span class="hljs-comment">/**
+ * Represents a bencoding Decoder.
+ * @constructor
+ * @param {Buffer|String} [data] - The data to decode
+ * @param {Object} [options] - The options for the decoder
+ * @param {String} [options.addMode="overwrite"] - The add mode 
+ *  to handle collisions:
+ *    pure - Throws an exception on duplicate keys
+ *    ignore - Ignores the duplicate
+ *    overwrite (defualt) - Overwrites with duplicate
+ *    merge - Converts into a list, and concats values
+ */</span>
+<span class="hljs-keyword">var</span> Decoder = <span class="hljs-built_in">module</span>.exports = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">Decoder</span><span class="hljs-params">(data, options)</span> </span>{</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-10">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-10">&#182;</a>
+              </div>
+              <p>convert arguments object into an array</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">var</span> args = <span class="hljs-built_in">Array</span>.prototype.slice.call(<span class="hljs-built_in">arguments</span>);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-11">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-11">&#182;</a>
+              </div>
+              <p>map each item in the array</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  args.map(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(item, index)</span> </span>{
+    <span class="hljs-keyword">if</span> (Buffer.isBuffer(item) || <span class="hljs-keyword">typeof</span>(item) === <span class="hljs-string">'string'</span>) {
+      <span class="hljs-keyword">this</span>.load(item);
+    }
+    <span class="hljs-keyword">if</span> (<span class="hljs-keyword">typeof</span>(item) === <span class="hljs-string">'object'</span>) {
+      <span class="hljs-keyword">this</span>.options = item;
+    }
+  },<span class="hljs-keyword">this</span>);
+};
+
+<span class="hljs-comment">/**
+ * Convenience function to decode the data
+ * @returns {Integer|Buffer|Array|Object}
+ */</span>
+Decoder.decode = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">decode</span><span class="hljs-params">(data, options)</span> </span>{
+  <span class="hljs-keyword">return</span> (<span class="hljs-keyword">new</span> Decoder(data, options)).decode();
+};
+
+<span class="hljs-comment">/**
+ * Loads the given data into the Decoder, resets the current position to 0.
+ * If data is not a Buffer, it is converted into a Buffer
+ * @param {Buffer|String} data - data to decode
+ */</span>
+Decoder.prototype.load = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">load</span><span class="hljs-params">(data)</span> </span>{</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-12">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-12">&#182;</a>
+              </div>
+              <p>reset cursor to begining</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">this</span>.currentPosition = <span class="hljs-number">0</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-13">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-13">&#182;</a>
+              </div>
+              <p>set data</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">this</span>.data = Buffer.isBuffer(data) ? data : (<span class="hljs-keyword">new</span> Buffer(data));
+};
+
+<span class="hljs-comment">/**
+ * Returns true if there is data to decode.
+ * @returns {Boolean} - true if there is data to decode
+ */</span>
+Decoder.prototype.hasData = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">hasData</span><span class="hljs-params">()</span> </span>{
+  <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.data &amp;&amp; <span class="hljs-keyword">this</span>.currentPosition &lt; <span class="hljs-keyword">this</span>.data.length;
+};
+
+<span class="hljs-comment">/**
+ * Decodes the data
+ * @returns {Integer|Buffer|Array|Object}
+ */</span>
+Decoder.prototype.decode = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">decode</span><span class="hljs-params">()</span> </span>{
+  <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.hasData() ? <span class="hljs-keyword">this</span>._decode() : <span class="hljs-literal">null</span>;
+};
+
+<span class="hljs-comment">/**
+ * Internal decode helper function
+ * @private
+ * @returns {Integer|Buffer|Array|Object}
+ */</span>
+Decoder.prototype._decode = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">_decode</span><span class="hljs-params">()</span> </span>{</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-14">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-14">&#182;</a>
+              </div>
+              <p>based on the character at the current position</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">switch</span>(<span class="hljs-keyword">this</span>.data[<span class="hljs-keyword">this</span>.currentPosition]) {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-15">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-15">&#182;</a>
+              </div>
+              <p>its an integer</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>      <span class="hljs-keyword">case</span> INT_CHAR:</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-16">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-16">&#182;</a>
+              </div>
+              <p>decode the integer</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._decodeInteger();</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-17">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-17">&#182;</a>
+              </div>
+              <p>its a dictionary</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>      <span class="hljs-keyword">case</span> DICT_CHAR:</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-18">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-18">&#182;</a>
+              </div>
+              <p>decode the dictionary</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._decodeDictionary();</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-19">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-19">&#182;</a>
+              </div>
+              <p>its a list</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>      <span class="hljs-keyword">case</span> LIST_CHAR:</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-20">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-20">&#182;</a>
+              </div>
+              <p>decode the list</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._decodeList();</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-21">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-21">&#182;</a>
+              </div>
+              <p>assume it a string</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>      <span class="hljs-keyword">default</span>:</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-22">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-22">&#182;</a>
+              </div>
+              <p>decode the string as a buffer</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._decodeBuffer();
+  }
+};
+
+<span class="hljs-comment">/**
+ * Validates that the current position has the given charCode
+ * throws an error if not
+ * @private
+ */</span>
+Decoder.prototype._validate = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(charCode, invalidMessage)</span> </span>{
+  <span class="hljs-keyword">if</span> (!<span class="hljs-keyword">this</span>.hasData()) {
+    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">'No data to decode.'</span>);
+  }
+  <span class="hljs-keyword">if</span> (<span class="hljs-keyword">this</span>.data[<span class="hljs-keyword">this</span>.currentPosition] !== charCode) {
+    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(invalidMessage);
+  }
+};
+
+<span class="hljs-comment">/**
+ * Finds the char code in the buffer and returns the index.
+ * @private
+ */</span>
+Decoder.prototype._find = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">_find</span><span class="hljs-params">(charCode)</span> </span>{
+  <span class="hljs-keyword">var</span> index = <span class="hljs-keyword">this</span>.currentPosition + <span class="hljs-number">1</span>;
+  <span class="hljs-keyword">while</span> (index &lt; <span class="hljs-keyword">this</span>.data.length) {
+    <span class="hljs-keyword">if</span> (<span class="hljs-keyword">this</span>.data[index] === charCode) {
+      <span class="hljs-keyword">return</span> index;
+    }
+    index += <span class="hljs-number">1</span>;
+  }
+  <span class="hljs-keyword">return</span> -<span class="hljs-number">1</span>;
+};
+
+<span class="hljs-comment">/**
+ * Decodes a bencoded integer
+ * @private
+ */</span>
+Decoder.prototype._decodeInteger = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">_decodeInteger</span><span class="hljs-params">()</span> </span>{</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-23">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-23">&#182;</a>
+              </div>
+              <p>starting character should be i (105)</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">this</span>._validate(
+    INT_CHAR,
+    <span class="hljs-string">'Invalid integer segment, starting character not valid.'</span>
+  );</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-24">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-24">&#182;</a>
+              </div>
+              <p>move the cursor to the next octet</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">var</span> start = <span class="hljs-keyword">this</span>.currentPosition + <span class="hljs-number">1</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-25">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-25">&#182;</a>
+              </div>
+              <p>find the ‘e’ - ending character</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">var</span> end = <span class="hljs-keyword">this</span>._find(END_CHAR); 
+  <span class="hljs-keyword">if</span> (end &lt; <span class="hljs-number">0</span>) {
+    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(
+      <span class="hljs-string">'Invalid integer segment, ending character not found.'</span>
+    );
+  }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-26">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-26">&#182;</a>
+              </div>
+              <p>slice the buffer to get the integer in base 10</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">var</span> raw = <span class="hljs-keyword">this</span>.data.slice(start, end);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-27">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-27">&#182;</a>
+              </div>
+              <p>move current position forward</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">this</span>.currentPosition = end + <span class="hljs-number">1</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-28">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-28">&#182;</a>
+              </div>
+              <p>parse int base 10</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">return</span> <span class="hljs-built_in">parseInt</span>(raw.toString(<span class="hljs-string">'ascii'</span>), <span class="hljs-number">10</span>); 
+};
+
+<span class="hljs-comment">/**
+ * Decodes a bencoded list
+ * @private
+ */</span>
+Decoder.prototype._decodeList = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">_decodeList</span><span class="hljs-params">()</span> </span>{</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-29">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-29">&#182;</a>
+              </div>
+              <p>starting character should be l (108)</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">this</span>._validate(
+    LIST_CHAR, 
+    <span class="hljs-string">'Invalid list segment, starting character not valid.'</span>
+  );</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-30">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-30">&#182;</a>
+              </div>
+              <p>move the cursor to the next octet</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">this</span>.currentPosition += <span class="hljs-number">1</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-31">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-31">&#182;</a>
+              </div>
+              <p>list values to return</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">var</span> values = [];</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-32">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-32">&#182;</a>
+              </div>
+              <p>use a loop, since the next e, does not ensure end of list</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">while</span> (<span class="hljs-keyword">this</span>.hasData() &amp;&amp; <span class="hljs-keyword">this</span>.data[<span class="hljs-keyword">this</span>.currentPosition] !== END_CHAR) {
+    values.push( <span class="hljs-keyword">this</span>._decode() );
+  }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-33">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-33">&#182;</a>
+              </div>
+              <p>check for end of list character</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">this</span>._validate(END_CHAR, <span class="hljs-string">'Invalid list segment, ending character not valid.'</span>);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-34">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-34">&#182;</a>
+              </div>
+              <p>advance cursor</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">this</span>.currentPosition += <span class="hljs-number">1</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-35">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-35">&#182;</a>
+              </div>
+              <p>return the set of values</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">return</span> values;
+};
+
+<span class="hljs-comment">/**
+ * Decodes a bencoded dictionary
+ * @private
+ */</span>
+Decoder.prototype._decodeDictionary = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">_decodeDictionary</span><span class="hljs-params">()</span> </span>{</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-36">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-36">&#182;</a>
+              </div>
+              <p>starting character should be d</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">this</span>._validate(
+    DICT_CHAR, 
+    <span class="hljs-string">'Invalid dictionary segment, starting character not valid.'</span>
+  );</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-37">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-37">&#182;</a>
+              </div>
+              <p>move the cursor to the next octet</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">this</span>.currentPosition += <span class="hljs-number">1</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-38">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-38">&#182;</a>
+              </div>
+              <p>object to return</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">var</span> dictionary = <span class="hljs-keyword">new</span> Dictionary(<span class="hljs-keyword">this</span>.options);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-39">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-39">&#182;</a>
+              </div>
+              <p>while not at end and current octet != ‘e’</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">while</span>(<span class="hljs-keyword">this</span>.hasData() &amp;&amp; <span class="hljs-keyword">this</span>.data[<span class="hljs-keyword">this</span>.currentPosition] !== END_CHAR) {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-40">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-40">&#182;</a>
+              </div>
+              <p>decode the key; key must always be a string</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">var</span> key = <span class="hljs-keyword">this</span>._decodeBuffer().toString();</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-41">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-41">&#182;</a>
+              </div>
+              <p>decode the value</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">var</span> value = <span class="hljs-keyword">this</span>._decode();</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-42">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-42">&#182;</a>
+              </div>
+              <p>add the (key, value) pair to the dictionary</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    dictionary.add(key,value);
+  }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-43">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-43">&#182;</a>
+              </div>
+              <p>check the ending character</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">this</span>._validate(
+    END_CHAR, 
+    <span class="hljs-string">'Invalid dictionary segment, ending character not valid.'</span>
+  );</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-44">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-44">&#182;</a>
+              </div>
+              <p>move the cursor to the next octet</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">this</span>.currentPosition += <span class="hljs-number">1</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-45">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-45">&#182;</a>
+              </div>
+              <p>return the object</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">return</span> dictionary.content;
+};
+
+<span class="hljs-comment">/**
+ * Decodes a bencoded string into a buffer
+ * Use Buffers for speed
+ * @private
+ */</span>
+Decoder.prototype._decodeBuffer = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">_decodeBuffer</span><span class="hljs-params">()</span> </span>{</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-46">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-46">&#182;</a>
+              </div>
+              <p>find the index of :</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">var</span> sep = <span class="hljs-keyword">this</span>._find(SEP_CHAR);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-47">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-47">&#182;</a>
+              </div>
+              <p>ensure ‘:’ was found</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">if</span> (sep &lt; <span class="hljs-number">0</span>) {
+    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">"Invalid string segment, ':' not found."</span>);
+  }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-48">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-48">&#182;</a>
+              </div>
+              <p>get the raw length indicator</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">var</span> raw = <span class="hljs-keyword">this</span>.data.slice(<span class="hljs-keyword">this</span>.currentPosition, sep);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-49">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-49">&#182;</a>
+              </div>
+              <p>parse it to an integer</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">var</span> length = <span class="hljs-built_in">parseInt</span>(raw.toString(<span class="hljs-string">'ascii'</span>), <span class="hljs-number">10</span>);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-50">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-50">&#182;</a>
+              </div>
+              <p>string starting position</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">var</span> start = sep + <span class="hljs-number">1</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-51">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-51">&#182;</a>
+              </div>
+              <p>string ending position</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">var</span> end = start + length;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-52">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-52">&#182;</a>
+              </div>
+              <p>set the current position to the end</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">this</span>.currentPosition = end;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-53">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-53">&#182;</a>
+              </div>
+              <p>return a reference to the string segment</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.data.slice(start, end);
+};</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>
