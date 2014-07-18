@@ -1,6 +1,6 @@
 {
   "name": "bxxcode",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "bencoding module",
   "main": "index.js",
   "directories": {
