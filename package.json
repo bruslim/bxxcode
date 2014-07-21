@@ -1,6 +1,6 @@
 {
-  "name": "bxxcode",
-  "version": "0.0.6",
+  "name": "bxxcode-gmp",
+  "version": "0.0.1",
   "description": "bencoding module",
   "main": "index.js",
   "directories": {
@@ -26,5 +26,8 @@
   "homepage": "https://github.com/bruslim/bxxcode",
   "devDependencies": {
     "tape": "^2.13.3"
+  },
+  "dependencies": {
+    "bigint": "^0.4.2"
   }
 }

@@ -6,18 +6,19 @@
 var test = require('tape');
 var data = require('./data.js');
 var bencode = require('../index.js');
+var bigint = require('bigint');
 
 test("bencode#decode", function(t) {
   t.test('should be able to decode an integer', function(t) {
     t.plan(2);
-    t.equal(bencode.decode('i123e'), 123);
-    t.equal(bencode.decode('i-123e'), -123);
+    t.assert(bigint('123').eq(bencode.decode('i123e')));
+    t.assert(bigint('-123').eq(bencode.decode('i-123e')));
   });
   
   t.test('should be able to decode a float (as int)', function(t) {
     t.plan(2);
-    t.equal(bencode.decode('i12.3e'), 12);
-    t.equal(bencode.decode('i-12.3e'), -12);
+    t.assert(bigint('12').eq(bencode.decode('i12.3e')));
+    t.assert(bigint('-12').eq(bencode.decode('i-12.3e')));
   });
 
   t.test('should be able to decode a string', function(t) {
@@ -28,7 +29,7 @@ test("bencode#decode", function(t) {
 
   t.test('should be able to decode "binary keys"', function(t) {
     t.plan(1);
-    t.ok(bencode.decode(data.binKeyData).files.hasOwnProperty(data.binKeyName));
+    t.ok(bencode.decode(data.binKeyData).files.hasOwnProperty(data.binKeyName.toString('base64')));
   });
 
   t.test('should be able to decode a dictionary', function(t) {
@@ -73,17 +74,33 @@ test("bencode#decode", function(t) {
     t.plan(4);
     var someData = {
       string: 'Hello World',
-      integer: 12345,
+      integer: bigint('12345'),
       dict: {
         key: 'This is a string within a dictionary'
       },
-      list: [ 1, 2, 3, 4, 'string', 5, {} ]
+      list: [ 
+        bigint('1'),
+        bigint('2'), 
+        bigint('3'), 
+        bigint('4'), 
+        'string', 
+        bigint('5'),
+        {}
+      ]
     };
     var result = bencode.encode( someData );
     var dat = bencode.decode ( result );
-    t.equal(dat.integer, 12345);
+    t.deepEqual(dat.integer, bigint('12345'));
     t.deepEqual(dat.string, new Buffer("Hello World"));
     t.deepEqual(dat.dict.key, new Buffer("This is a string within a dictionary"));
-    t.deepEqual(dat.list, [1, 2, 3, 4, new Buffer('string'), 5, {}]);
+    t.deepEqual(dat.list, [
+      bigint('1'),
+      bigint('2'),
+      bigint('3'),
+      bigint('4'),
+      new Buffer('string'),
+      bigint('5'),
+      {}
+    ]);
   });
 });
