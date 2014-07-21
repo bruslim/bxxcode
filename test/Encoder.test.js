@@ -5,6 +5,7 @@
 var test = require('tape');
 var data = require('./data.js');
 var bencode = require('../index.js');
+var bigint = require('bigint');
 
 //redefine encode with correct options to mimic node-bencode
 bencode.encode = function(value, options) {
@@ -83,6 +84,10 @@ test('bencode#encode()', function(t) {
   t.test('should be able to encode a previously problematic 64 bit int', function(t) {
     t.plan(1);
     t.equal(bencode.encode(2433088826).toString(), 'i' + 2433088826 + 'e');
+  });
+  t.test('should be able to encode a bigint', function(t) {
+    t.plan(1);
+    t.equal(bencode.encode(bigint(2433088826)).toString(), 'i' + 2433088826 + 'e');
   });
   t.test('should be able to encode a negative 64 bit int', function(t) {
     t.plan(1);
