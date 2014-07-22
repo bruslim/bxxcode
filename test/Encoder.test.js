@@ -6,6 +6,7 @@ var test = require('tape');
 var data = require('./data.js');
 var bencode = require('../index.js');
 var bigint = require('bigint');
+var Dictionary = require('../lib/Dictionary.js');
 
 //redefine encode with correct options to mimic node-bencode
 bencode.encode = function(value, options) {
@@ -126,5 +127,18 @@ test('bencode#encode()', function(t) {
     t.equal(bencode.encode({"a": "bc"}).toString(), 'd1:a2:bce');
     t.equal(bencode.encode({"a": "45", "b": 45}).toString(), 'd1:a2:451:bi45ee');
     t.equal(bencode.encode({"a": new Buffer("bc")}).toString(), 'd1:a2:bce');
+  });
+  t.test('should be able to encode a Dictonary', function(t) {
+    t.plan(3);
+    var d1 = new Dictionary();
+    d1.add('a', "bc");
+    t.equal(bencode.encode(d1).toString(), 'd1:a2:bce');
+    var d2 = new Dictionary();
+    d2.add("a", "45");
+    d2.add("b", 45);
+    t.equal(bencode.encode(d2).toString(), 'd1:a2:451:bi45ee');
+    var d3 = new Dictionary();
+    d3.add("a", new Buffer("bc"));
+    t.equal(bencode.encode(d3).toString(), 'd1:a2:bce');
   });
 });
