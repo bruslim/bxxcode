@@ -25,7 +25,6 @@ var decoded = bxxcode.decode(input);
 // encode
 var encoded = bxxcode.encode(input);
 
-
 ~~~~~~~~~~
 
 
