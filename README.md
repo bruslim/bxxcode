@@ -1,4 +1,4 @@
-#bxxcodejs
+#bxxcode
 
 A nodejs bencoding module.
 
