@@ -4,8 +4,6 @@ A nodejs bencoding module.
 
 It can encode and decode bencoded buffers and strings.
 
-Based off of [node-bencode](https://github.com/themasch/node-bencode/).
-
 
 To install:
 
@@ -62,3 +60,5 @@ THE SOFTWARE.
 ## Thanks
 
 Made @ [HackerSchool (S'14 June)](https://www.hackerschool.com)
+
+Based off of [node-bencode](https://github.com/themasch/node-bencode/).
