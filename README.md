@@ -15,7 +15,6 @@ npm install bxxcode
 ## Usage
 
 ~~~~~~~~~~ js
-
 // import
 var bxxcode = require('bxxcode');
 
@@ -24,7 +23,6 @@ var decoded = bxxcode.decode(input);
 
 // encode
 var encoded = bxxcode.encode(input);
-
 ~~~~~~~~~~
 
 
