@@ -28,6 +28,6 @@ var encoded = bxxcode.encode(input);
 
 ## Thanks
 
-Made @ [HackerSchool (S'14 June)](https://www.hackerschool.com)
+Made @ [Recurse Center (S'14 June)](https://www.recurse.com)
 
 Based off of [node-bencode](https://github.com/themasch/node-bencode/).
